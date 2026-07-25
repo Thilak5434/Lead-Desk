@@ -15,9 +15,10 @@ app.set('trust proxy', 1);
 let db;
 try {
   db = initFirebase().db;
-  console.log('Firebase initialized successfully');
+  console.log('[Server] Firebase ready');
 } catch (err) {
-  console.error('Firebase initialization error:', err.message);
+  console.error('[Server] Firebase FAILED:', err.message);
+  console.error('[Server] Leads will return 500 until Firebase is configured');
 }
 
 app.use(express.json());
