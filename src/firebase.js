@@ -5,6 +5,20 @@ const fs = require('fs');
 
 let db = null;
 
+function parsePrivateKey(raw) {
+  let key = raw;
+  // Strip surrounding quotes
+  if ((key.startsWith('"') && key.endsWith('"')) ||
+      (key.startsWith("'") && key.endsWith("'"))) {
+    key = key.slice(1, -1);
+  }
+  // Replace literal \n with real newlines
+  key = key.replace(/\\n/g, '\n');
+  // Normalize line endings
+  key = key.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  return key.trim();
+}
+
 function initFirebase() {
   if (db) return { db };
 
@@ -13,45 +27,40 @@ function initFirebase() {
   // Method 1: serviceAccountKey.json (local dev)
   const keyPath = path.join(__dirname, '..', 'serviceAccountKey.json');
   if (fs.existsSync(keyPath)) {
-    console.log('[Firebase] Loading from serviceAccountKey.json');
+    console.log('[Firebase] Using serviceAccountKey.json');
     const sa = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
     app = admin.initializeApp({ credential: admin.credential.cert(sa) });
   }
   // Method 2: Environment variables (Render / production)
-  else if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
-    console.log('[Firebase] Loading from environment variables');
+  else {
+    const projectId   = process.env.FIREBASE_PROJECT_ID;
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+    const rawKey      = process.env.FIREBASE_PRIVATE_KEY;
 
-    // Render stores the key as a single line with literal \n — fix it
-    let privateKey = process.env.FIREBASE_PRIVATE_KEY;
-
-    // Strip surrounding quotes if present
-    if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
-      privateKey = privateKey.slice(1, -1);
+    if (!projectId || !clientEmail || !rawKey) {
+      throw new Error(
+        '[Firebase] Missing env vars. Need: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY'
+      );
     }
-    // Replace literal \n with real newlines
-    privateKey = privateKey.replace(/\\n/g, '\n');
+
+    const privateKey = parsePrivateKey(rawKey);
 
     if (!privateKey.includes('BEGIN PRIVATE KEY')) {
-      throw new Error('[Firebase] FIREBASE_PRIVATE_KEY does not contain a valid private key');
+      console.error('[Firebase] Key preview:', privateKey.substring(0, 80));
+      throw new Error('[Firebase] FIREBASE_PRIVATE_KEY is malformed — does not contain BEGIN PRIVATE KEY');
     }
 
+    console.log('[Firebase] Using environment variables');
+    console.log('[Firebase] Project:', projectId);
+    console.log('[Firebase] Client email:', clientEmail);
+
     app = admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey,
-      }),
+      credential: admin.credential.cert({ projectId, clientEmail, privateKey }),
     });
-  }
-  else {
-    throw new Error(
-      '[Firebase] No credentials found.\n' +
-      'Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY in environment variables.'
-    );
   }
 
   db = getFirestore(app);
-  console.log('[Firebase] Firestore connected');
+  console.log('[Firebase] Firestore connected successfully');
   return { db };
 }
 
