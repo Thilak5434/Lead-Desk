@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="admin-body">
+  <div class="admin-login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <h1>LeadDesk <span class="highlight">Admin</span></h1>
+        <p>Sign in to manage your leads</p>
+      </div>
+
+      <% if (error) { %>
+        <div class="alert alert-error">
+          <span class="alert-icon">&#9888;</span>
+          <%= error %>
+        </div>
+      <% } %>
+
+      <form action="/admin/login" method="POST" class="login-form" id="loginForm">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="admin@leaddesk.com" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+            <button type="button" class="password-toggle" id="pwToggle" aria-label="Toggle password visibility">&#128065;</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" id="loginBtn">
+          <span class="btn-text">Sign In</span>
+          <span class="btn-loading" style="display:none;">Signing In...</span>
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <a href="/">&larr; Back to Home</a>
+      </div>
+    </div>
+
+    <footer class="footer" style="color:rgba(255,255,255,0.7);">
+      <p>Built for <a href="https://digitalheroesco.com" target="_blank" rel="noopener" style="color:white;">Digital Heroes Training Task</a></p>
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById('pwToggle').addEventListener('click', function() {
+      const pw = document.getElementById('password');
+      const isText = pw.type === 'text';
+      pw.type = isText ? 'password' : 'text';
+      this.textContent = isText ? '\u{1F441}' : '\u{1F576}';
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', function() {
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = true;
+      btn.querySelector('.btn-text').style.display = 'none';
+      btn.querySelector('.btn-loading').style.display = 'inline';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <div class="hero-content">
+        <h1>Grow Your Business with <span class="highlight">LeadDesk</span></h1>
+        <p>Tell us about your project and we'll help you find the perfect solution. Get started today.</p>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="form-section">
+        <h2>Get Started</h2>
+        <p class="form-subtitle">Fill out the form below and we'll be in touch within 24 hours.</p>
+
+        <div id="successMsg" class="alert alert-success" style="display:none;">
+          <span class="alert-icon">&#10003;</span>
+          <div>
+            <strong>Thank you!</strong> Your information has been submitted successfully. We'll be in touch within 24 hours.
+          </div>
+        </div>
+
+        <div id="serverErrors" class="alert alert-error" style="display:none;">
+          <span class="alert-icon">&#9888;</span>
+          <ul id="serverErrorList"></ul>
+        </div>
+
+        <form id="leadForm" class="lead-form" novalidate>
+          <div class="form-group">
+            <label for="name">Full Name <span class="required">*</span></label>
+            <input type="text" id="name" name="name" placeholder="John Doe" autocomplete="name">
+            <span class="error-message" id="nameError"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email Address <span class="required">*</span></label>
+            <input type="email" id="email" name="email" placeholder="john@example.com" autocomplete="email">
+            <span class="error-message" id="emailError"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="budget">Budget Range <span class="required">*</span></label>
+            <select id="budget" name="budget">
+              <option value="">Select a budget range</option>
+              <option value="<5000">Under $5,000</option>
+              <option value="5000-15000">$5,000 – $15,000</option>
+              <option value="15000-50000">$15,000 – $50,000</option>
+              <option value="50000+">$50,000+</option>
+            </select>
+            <span class="error-message" id="budgetError"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="message">Message <span class="required">*</span></label>
+            <textarea id="message" name="message" placeholder="Tell us about your project..." rows="5"></textarea>
+            <span class="char-count" id="charCount">0 / 2000</span>
+            <span class="error-message" id="messageError"></span>
+          </div>
+
+          <p class="privacy-note">&#128274; Your information is kept private and never shared with third parties.</p>
+
+          <button type="submit" class="btn btn-primary btn-full" id="submitBtn">
+            <span class="btn-text">Submit</span>
+            <span class="btn-loading" style="display:none;">&#9679;&#9679;&#9679; Submitting...</span>
+          </button>
+        </form>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>Built for <a href="https://digitalheroesco.com" target="_blank" rel="noopener noreferrer">Digital Heroes Training Task</a></p>
+    </footer>
+  </div>
+
+  <script src="/js/validation.js"></script>
+</body>
+</html>

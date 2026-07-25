@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="admin-body">
+  <div class="admin-container">
+
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="admin-header-left">
+        <h1>LeadDesk <span class="highlight">Admin</span></h1>
+      </div>
+      <div class="admin-header-right">
+        <span class="admin-user">&#128100; <%= typeof adminEmail !== 'undefined' ? adminEmail : 'Admin' %></span>
+        <a href="/admin/logout" class="btn btn-outline btn-sm">Logout</a>
+      </div>
+    </header>
+
+    <main class="admin-main">
+
+      <% if (error) { %>
+        <div class="alert alert-error" style="margin-bottom:20px;">
+          <span class="alert-icon">&#9888;</span> <%= error %>
+        </div>
+      <% } %>
+
+      <!-- Stats Cards -->
+      <%
+        const total = leads.length;
+        // When searching, counts reflect filtered results
+        const newCount = leads.filter(l => l.status === 'New').length;
+        const contactedCount = leads.filter(l => l.status === 'Contacted').length;
+        const closedCount = leads.filter(l => l.status === 'Closed').length;
+      %>
+      <div class="stats-grid">
+        <div class="stat-card stat-total">
+          <div class="stat-number"><%= total %></div>
+          <div class="stat-label">Total Leads</div>
+        </div>
+        <div class="stat-card stat-new">
+          <div class="stat-number"><%= newCount %></div>
+          <div class="stat-label">New</div>
+        </div>
+        <div class="stat-card stat-contacted">
+          <div class="stat-number"><%= contactedCount %></div>
+          <div class="stat-label">Contacted</div>
+        </div>
+        <div class="stat-card stat-closed">
+          <div class="stat-number"><%= closedCount %></div>
+          <div class="stat-label">Closed</div>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <div class="admin-toolbar">
+        <form action="/admin" method="GET" class="search-form">
+          <input type="text" name="search" placeholder="Search by name, email, message, or status..." value="<%= search %>" class="search-input">
+          <button type="submit" class="btn btn-primary btn-sm">Search</button>
+          <% if (search) { %>
+            <a href="/admin" class="btn btn-outline btn-sm">Clear</a>
+          <% } %>
+        </form>
+      </div>
+
+      <!-- Table -->
+      <% if (leads.length === 0) { %>
+        <div class="empty-state">
+          <div class="empty-icon">&#128203;</div>
+          <h3>No leads found</h3>
+          <p><%= search ? 'No leads match your search.' : 'Leads submitted from the landing page will appear here.' %></p>
+        </div>
+      <% } else { %>
+        <div class="table-container">
+          <table class="leads-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Budget</th>
+                <th>Message</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th>Update</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% leads.forEach(function(lead) {
+                let dateStr = '—';
+                if (lead.createdAt) {
+                  try {
+                    dateStr = new Date(lead.createdAt).toLocaleDateString('en-US', {
+                      month: 'short', day: 'numeric', year: 'numeric'
+                    });
+                  } catch(e) {}
+                }
+              %>
+              <tr class="lead-row" data-id="<%= lead.id %>">
+                <td class="cell-name"><%= lead.name %></td>
+                <td class="cell-email"><a href="mailto:<%= lead.email %>"><%= lead.email %></a></td>
+                <td class="cell-budget"><%= lead.budget %></td>
+                <td class="cell-message" title="<%= lead.message %>">
+                  <%= lead.message && lead.message.length > 50 ? lead.message.substring(0, 50) + '…' : lead.message %>
+                </td>
+                <td class="cell-date"><%= dateStr %></td>
+                <td class="cell-status">
+                  <span class="status-badge status-<%= lead.status.toLowerCase() %>"><%= lead.status %></span>
+                </td>
+                <td class="cell-actions">
+                  <select class="status-select" data-lead-id="<%= lead.id %>">
+                    <option value="New"       <%= lead.status === 'New'       ? 'selected' : '' %>>New</option>
+                    <option value="Contacted" <%= lead.status === 'Contacted' ? 'selected' : '' %>>Contacted</option>
+                    <option value="Closed"    <%= lead.status === 'Closed'    ? 'selected' : '' %>>Closed</option>
+                  </select>
+                </td>
+                <td>
+                  <button class="btn btn-outline btn-sm view-btn"
+                    data-name="<%= lead.name %>"
+                    data-email="<%= lead.email %>"
+                    data-budget="<%= lead.budget %>"
+                    data-message="<%= lead.message %>"
+                    data-status="<%= lead.status %>"
+                    data-date="<%= dateStr %>">View</button>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </main>
+
+    <footer class="footer">
+      <p>Built for <a href="https://digitalheroesco.com" target="_blank" rel="noopener">Digital Heroes Training Task</a></p>
+    </footer>
+  </div>
+
+  <!-- View Details Modal -->
+  <div id="modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+      <h3 class="modal-title">Lead Details</h3>
+      <dl class="modal-dl">
+        <dt>Name</dt>      <dd id="mName"></dd>
+        <dt>Email</dt>     <dd id="mEmail"></dd>
+        <dt>Budget</dt>    <dd id="mBudget"></dd>
+        <dt>Status</dt>    <dd id="mStatus"></dd>
+        <dt>Submitted</dt> <dd id="mDate"></dd>
+        <dt>Message</dt>   <dd id="mMessage" class="modal-message"></dd>
+      </dl>
+    </div>
+  </div>
+
+  <script>
+    // Status update via PATCH
+    document.querySelectorAll('.status-select').forEach(select => {
+      select.addEventListener('change', async function () {
+        const leadId = this.dataset.leadId;
+        const newStatus = this.value;
+        const row = this.closest('tr');
+        const badge = row.querySelector('.status-badge');
+        const prev = badge.textContent.trim();
+
+        try {
+          const res = await fetch('/api/leads/' + leadId + '/status', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+          });
+          const data = await res.json();
+          if (data.success) {
+            badge.className = 'status-badge status-' + newStatus.toLowerCase();
+            badge.textContent = newStatus;
+          } else {
+            alert('Error: ' + (data.error || 'Unknown error'));
+            this.value = prev;
+          }
+        } catch (e) {
+          alert('Network error. Please try again.');
+          this.value = prev;
+        }
+      });
+    });
+
+    // View Details modal
+    const modal = document.getElementById('modal');
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.getElementById('mName').textContent    = this.dataset.name;
+        document.getElementById('mEmail').textContent   = this.dataset.email;
+        document.getElementById('mBudget').textContent  = this.dataset.budget;
+        document.getElementById('mStatus').textContent  = this.dataset.status;
+        document.getElementById('mDate').textContent    = this.dataset.date;
+        document.getElementById('mMessage').textContent = this.dataset.message;
+        modal.style.display = 'flex';
+      });
+    });
+
+    document.getElementById('modalClose').addEventListener('click', () => modal.style.display = 'none');
+    modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') modal.style.display = 'none'; });
+  </script>
+</body>
+</html>
