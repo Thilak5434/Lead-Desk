@@ -29,7 +29,7 @@ function initFirebase() {
   if (fs.existsSync(keyPath)) {
     console.log('[Firebase] Using serviceAccountKey.json');
     const sa = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
-    app = admin.initializeApp({ credential: admin.credential.cert(sa) });
+    app = admin.initializeApp({ credential: admin.cert(sa) });
   }
   // Method 2: Environment variables (Render / production)
   else {
@@ -55,7 +55,7 @@ function initFirebase() {
     console.log('[Firebase] Client email:', clientEmail);
 
     app = admin.initializeApp({
-      credential: admin.credential.cert({ projectId, clientEmail, privateKey }),
+      credential: admin.cert({ projectId, clientEmail, privateKey }),
     });
   }
 
